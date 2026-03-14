@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo_icon.png"><title>Create Account – TrichoAI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(160deg, #F0F7FF 0%, #FFFFFF 60%, #F0FFF5 100%);
+            min-height: 100vh;
+        }
+
+        .reg-outer {
+            max-width: 700px;
+            margin: 3rem auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .reg-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .reg-header h2 {
+            font-size: 2.2rem;
+        }
+
+        .reg-steps {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2.5rem;
+            background: var(--bg-section);
+            border-radius: 50px;
+            padding: 0.3rem;
+        }
+
+        .step-pill {
+            flex: 1;
+            text-align: center;
+            padding: 0.6rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .step-pill.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .step-pill.done {
+            color: var(--green);
+        }
+
+        .reg-step-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .reg-step-panel.active {
+            display: block;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .range-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .range-wrapper input {
+            flex: 1;
+        }
+
+        .range-val {
+            font-weight: 700;
+            color: var(--primary);
+            min-width: 30px;
+        }
+
+        .btn-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo"><img src="assets/logo_full.png" alt="TrichoAI" style="height:40px; width:auto; object-fit:contain;"></a>
+        <div class="nav-links">
+            <a href="login.html" class="nav-link">Already have an account?</a>
+            <a href="login.html" class="btn btn-outline btn-sm">Sign In</a>
+        </div>
+    </nav>
+
+    <div class="reg-outer">
+        <div class="reg-header slide-up">
+            <span class="badge badge-blue mb-2">Sign Up Free</span>
+            <h2>Create Your <span class="gradient-text">Hair Profile</span></h2>
+            <p class="mt-2">Tell us about your hair so our AI can give you personalized recommendations.</p>
+        </div>
+
+        <div class="card">
+            <div class="reg-steps">
+                <div class="step-pill active" id="pill-1">1 · Personal</div>
+                <div class="step-pill" id="pill-2">2 · Hair Profile</div>
+                <div class="step-pill" id="pill-3">3 · Lifestyle</div>
+            </div>
+
+            <!-- STEP 1: Personal Info -->
+            <div class="reg-step-panel active" id="step-1">
+                <h3 class="mb-2">Personal Information</h3>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="reg-name" class="form-input" placeholder="Your full name">
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="reg-email" class="form-input" placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="reg-password" class="form-input" placeholder="Min. 8 characters">
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Age</label>
+                        <input type="number" id="reg-age" class="form-input" placeholder="e.g. 28" min="10" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select id="reg-gender" class="form-input form-select">
+                            <option value="">Select gender</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <span></span>
+                    <button onclick="nextStep(2)" class="btn btn-primary">Next: Hair Profile →</button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Hair Profile -->
+            <div class="reg-step-panel" id="step-2">
+                <h3 class="mb-2">Your Hair Profile</h3>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Hair Type</label>
+                        <select id="reg-hairtype" class="form-input form-select">
+                            <option value="">Select hair type</option>
+                            <option>Straight</option>
+                            <option>Wavy</option>
+                            <option>Curly</option>
+                            <option>Coily</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hair Thickness</label>
+                        <select id="reg-thickness" class="form-input form-select">
+                            <option value="">Select thickness</option>
+                            <option>Fine</option>
+                            <option>Medium</option>
+                            <option>Thick</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Scalp Type</label>
+                        <select id="reg-scalp" class="form-input form-select">
+                            <option value="">Select scalp type</option>
+                            <option>Dry</option>
+                            <option>Oily</option>
+                            <option>Normal</option>
+                            <option>Sensitive</option>
+                            <option>Combination</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Current Hair Concern</label>
+                        <select id="reg-concern" class="form-input form-select">
+                            <option value="">Select concern</option>
+                            <option>Hair Fall</option>
+                            <option>Dandruff</option>
+                            <option>Hair Thinning</option>
+                            <option>Slow Growth</option>
+                            <option>Breakage</option>
+                            <option>None</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button onclick="nextStep(1)" class="btn btn-outline">← Back</button>
+                    <button onclick="nextStep(3)" class="btn btn-primary">Next: Lifestyle →</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Lifestyle -->
+            <div class="reg-step-panel" id="step-3">
+                <h3 class="mb-2">Lifestyle & Habits</h3>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Diet Quality</label>
+                        <select id="reg-diet" class="form-input form-select">
+                            <option value="">Select diet</option>
+                            <option>Excellent</option>
+                            <option>Good</option>
+                            <option>Average</option>
+                            <option>Poor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sleep Quality</label>
+                        <select id="reg-sleep" class="form-input form-select">
+                            <option value="">Select sleep quality</option>
+                            <option>7–9 hrs (Good)</option>
+                            <option>5–7 hrs (Average)</option>
+                            <option>&lt;5 hrs (Poor)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stress Level (1 = Low, 10 = Very High)</label>
+                    <div class="range-wrapper">
+                        <input type="range" id="reg-stress" min="1" max="10" value="5"
+                            oninput="document.getElementById('stress-val').textContent=this.value">
+                        <span class="range-val" id="stress-val">5</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Exercise Frequency</label>
+                    <select id="reg-exercise" class="form-input form-select">
+                        <option value="">Select frequency</option>
+                        <option>Daily</option>
+                        <option>3–5x / week</option>
+                        <option>1–2x / week</option>
+                        <option>Rarely</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Water Intake per Day</label>
+                    <select id="reg-water" class="form-input form-select">
+                        <option value="">Select water intake</option>
+                        <option>2+ Litres (Excellent)</option>
+                        <option>1–2 Litres (Good)</option>
+                        <option>Less than 1 Litre (Poor)</option>
+                    </select>
+                </div>
+                <div class="btn-row">
+                    <button onclick="nextStep(2)" class="btn btn-outline">← Back</button>
+                    <button onclick="completeRegistration()" class="btn btn-green">Complete & Start Analysis ✓</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        function nextStep(n) {
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            document.getElementById(`pill-${currentStep}`).classList.remove('active');
+            document.getElementById(`pill-${currentStep}`).classList.add('done');
+            currentStep = n;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            document.getElementById(`pill-${currentStep}`).classList.add('active');
+            document.getElementById(`pill-${currentStep}`).classList.remove('done');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function completeRegistration() {
+            const profile = {
+                name: document.getElementById('reg-name').value || 'User',
+                email: document.getElementById('reg-email').value || 'user@tricho.ai',
+                password: document.getElementById('reg-password').value || 'demo123',
+                age: document.getElementById('reg-age').value || 25,
+                gender: document.getElementById('reg-gender').value || 'Not specified',
+                hairType: document.getElementById('reg-hairtype').value || 'Normal',
+                thickness: document.getElementById('reg-thickness').value || 'Medium',
+                scalpType: document.getElementById('reg-scalp').value || 'Normal',
+                concern: document.getElementById('reg-concern').value || 'None',
+                diet: document.getElementById('reg-diet').value || 'Good',
+                sleep: document.getElementById('reg-sleep').value || '7–9 hrs (Good)',
+                stress: document.getElementById('reg-stress').value || 5,
+                exercise: document.getElementById('reg-exercise').value || '3–5x / week',
+                water: document.getElementById('reg-water').value || '1–2 Litres (Good)',
+                healthScore: 75,
+                stage: 2,
+                scans: [],
+                joinDate: new Date().toISOString()
+            };
+
+            const users = JSON.parse(localStorage.getItem('tricho_users') || '[]');
+            users.push(profile);
+            localStorage.setItem('tricho_users', JSON.stringify(users));
+            localStorage.setItem('tricho_session', JSON.stringify(profile));
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+
+</html>

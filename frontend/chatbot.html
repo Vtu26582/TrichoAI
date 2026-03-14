@@ -1,0 +1,683 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo_icon.png"><title>Dr. Tricho AI – TrichoAI Chatbot</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: var(--bg-light);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            max-width: 860px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.2rem 1.5rem 0;
+            height: calc(100vh - 72px);
+        }
+
+        .chat-header-bar {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius) var(--radius) 0 0;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .bot-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .bot-online {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--green);
+            border: 2px solid white;
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+        }
+
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg-section);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .msg-row {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .msg-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .msg-avatar.bot-av {
+            background: linear-gradient(135deg, var(--primary), var(--green));
+            color: white;
+        }
+
+        .msg-avatar.user-av {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            font-weight: 700;
+        }
+
+        .bubble {
+            max-width: 80%;
+            padding: 1rem 1.25rem;
+            border-radius: 14px;
+            line-height: 1.65;
+            font-size: 0.93rem;
+            animation: slideUp 0.25s ease;
+        }
+
+        .bubble.bot {
+            background: white;
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+            color: var(--text);
+        }
+
+        .bubble.user {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Markdown rendering inside bot bubble */
+        .bubble.bot h4 {
+            color: var(--primary);
+            font-size: 0.92rem;
+            margin: 0.75rem 0 0.3rem;
+            border-bottom: 1px solid var(--primary-light);
+            padding-bottom: 0.2rem;
+        }
+
+        .bubble.bot h4:first-child {
+            margin-top: 0;
+        }
+
+        .bubble.bot strong {
+            color: var(--text);
+        }
+
+        .bubble.bot em {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .bubble.bot p {
+            color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+
+        .bubble.bot ul,
+        .bubble.bot ol {
+            padding-left: 1.3rem;
+            margin: 0.3rem 0;
+        }
+
+        .bubble.bot li {
+            margin: 0.2rem 0;
+        }
+
+        .bubble.bot hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 0.75rem 0;
+        }
+
+        .bubble.bot blockquote {
+            border-left: 3px solid var(--primary);
+            padding-left: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.87rem;
+            margin: 0.5rem 0;
+        }
+
+        /* Tables in bot bubble */
+        .bubble.bot table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            margin: 0.75rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .bubble.bot th {
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .bubble.bot td {
+            padding: 0.45rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bubble.bot tr:nth-child(even) td {
+            background: var(--bg-light);
+        }
+
+        .bubble.bot tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Image in chat */
+        .chat-img {
+            max-width: 220px;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* Suggestion chips */
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 0.9rem;
+        }
+
+        .chip {
+            padding: 0.35rem 0.9rem;
+            border-radius: 50px;
+            border: 1.5px solid var(--primary-light);
+            background: white;
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Typing indicator */
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 0.35rem 0;
+        }
+
+        .typing-dots span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: bounce 1.2s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0)
+            }
+
+            40% {
+                transform: translateY(-6px)
+            }
+        }
+
+        /* Footer */
+        .chat-footer {
+            background: white;
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--radius) var(--radius);
+            padding: 0.75rem 1.25rem 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Image preview */
+        .img-preview-wrap {
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-section);
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .img-preview-wrap.show {
+            display: flex;
+        }
+
+        .img-preview-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .img-preview-label {
+            font-size: 0.83rem;
+            color: var(--text-muted);
+            flex: 1;
+        }
+
+        .img-preview-remove {
+            cursor: pointer;
+            color: #E74C3C;
+            font-size: 1.1rem;
+            padding: 0.1rem 0.25rem;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .img-preview-remove:hover {
+            background: #FDEDEC;
+        }
+
+        /* Input row */
+        .input-row {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem 1.1rem;
+            border-radius: 50px;
+            border: 1.5px solid var(--border);
+            font-size: 0.95rem;
+            color: var(--text);
+            outline: none;
+            background: var(--bg-light);
+            font-family: inherit;
+            transition: border 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .send-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(47, 128, 237, 0.35);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hint-text {
+            font-size: 0.74rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo"><img src="assets/logo_full.png" alt="TrichoAI" style="height:40px; width:auto; object-fit:contain;"></a>
+        <div class="nav-links">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="scanner.html" class="nav-link">AI Scanner</a>
+            <a href="progress.html" class="nav-link">Progress</a>
+        </div>
+    </nav>
+
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header-bar">
+            <div class="bot-avatar">🧬<div class="bot-online"></div>
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:700; font-size:1.05rem;">Dr. Tricho AI</div>
+                <div style="font-size:0.78rem; color:var(--green); font-weight:500;">● Online — Clinical Trichologist &
+                    Hair Health AI</div>
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-muted); text-align:right;">
+                Trained on clinical research<br>PRP · JAK · FUE · Nutrition
+            </div>
+        </div>
+
+        <!-- Chat Body -->
+        <div class="chat-body" id="chat-body">
+            <div class="msg-row">
+                <div class="msg-avatar bot-av">🧬</div>
+                <div class="bubble bot">
+                    <p>Hello! 👋 I'm <strong>Dr. Tricho</strong>, your AI-powered Hair & Scalp Health Consultant —
+                        trained on advanced clinical trichology, pharmacotherapy, and regenerative medicine.</p>
+                    <p style="margin-top:0.4rem;">I can analyse your questions and uploaded hair images with clinical
+                        precision.</p>
+                    <div class="suggestion-chips">
+                        <div class="chip" onclick="sendChip(this)">💇 Types of Hair Loss</div>
+                        <div class="chip" onclick="sendChip(this)">💊 Minoxidil vs Finasteride</div>
+                        <div class="chip" onclick="sendChip(this)">🥗 Ferritin & Hair Loss</div>
+                        <div class="chip" onclick="sendChip(this)">🔬 PRP vs Exosome Therapy</div>
+                        <div class="chip" onclick="sendChip(this)">🏥 FUE vs DHI Transplant</div>
+                        <div class="chip" onclick="sendChip(this)">❄️ Dandruff Treatment</div>
+                        <div class="chip" onclick="sendChip(this)">🧘 Scalp Massage Protocol</div>
+                        <div class="chip" onclick="sendChip(this)">💆 Alopecia Areata</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="chat-footer">
+            <!-- Image preview strip -->
+            <div class="img-preview-wrap" id="img-preview-wrap">
+                <img id="img-thumb" class="img-preview-thumb" src="" alt="preview">
+                <span class="img-preview-label">📎 Image attached — Dr. Tricho will analyse this photo</span>
+                <span class="img-preview-remove" onclick="removeImage()" title="Remove image">✕</span>
+            </div>
+
+            <!-- Input row -->
+            <div class="input-row">
+                <!-- Hidden file input -->
+                <input type="file" id="img-file-input" accept="image/*" style="display:none;"
+                    onchange="handleImageSelect(this)">
+                <button class="icon-btn" title="Upload hair/scalp image for analysis"
+                    onclick="document.getElementById('img-file-input').click()">📎</button>
+                <input type="text" class="chat-input" id="chat-input"
+                    placeholder="Ask Dr. Tricho about hair loss, dandruff, treatments..." autocomplete="off">
+                <button class="send-btn" id="send-btn" onclick="sendMessage()">↑</button>
+            </div>
+            <p class="hint-text">Dr. Tricho AI provides evidence-based education only. Always consult a qualified
+                dermatologist for medical diagnosis and treatment.</p>
+        </div>
+    </div>
+
+    <script>
+        const chatBody = document.getElementById('chat-body');
+        const chatInput = document.getElementById('chat-input');
+        let pendingImage = null; // base64 data URL
+
+        chatInput.addEventListener('keypress', e => { if (e.key === 'Enter' && !e.shiftKey) sendMessage(); });
+
+        function sendChip(el) {
+            chatInput.value = el.textContent.trim().replace(/^[^\s]+\s/, '').trim();
+            sendMessage();
+        }
+
+        function handleImageSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                pendingImage = e.target.result;
+                document.getElementById('img-thumb').src = pendingImage;
+                document.getElementById('img-preview-wrap').classList.add('show');
+            };
+            reader.readAsDataURL(file);
+            input.value = ''; // reset so same file can be re-selected
+        }
+
+        function removeImage() {
+            pendingImage = null;
+            document.getElementById('img-preview-wrap').classList.remove('show');
+            document.getElementById('img-thumb').src = '';
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text && !pendingImage) return;
+
+            const messageText = text || 'Please analyse this hair/scalp image and provide a detailed clinical assessment.';
+
+            // Render user message
+            appendUserMessage(messageText, pendingImage);
+            chatInput.value = '';
+            const imageToSend = pendingImage;
+            removeImage();
+
+            document.getElementById('send-btn').disabled = true;
+            const typingId = showTyping();
+
+            try {
+                const payload = { message: messageText };
+                if (imageToSend) payload.image = imageToSend;
+
+                const res = await fetch('http://127.0.0.1:9000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                removeTyping(typingId);
+                appendBotMessage(data.response);
+            } catch (e) {
+                removeTyping(typingId);
+                appendBotMessage(getLocalResponse(messageText));
+            } finally {
+                document.getElementById('send-btn').disabled = false;
+            }
+        }
+
+        function appendUserMessage(text, imageUrl) {
+            const session = JSON.parse(localStorage.getItem('tricho_session') || '{}');
+            const initials = (session.name || 'U')[0].toUpperCase();
+            const row = document.createElement('div');
+            row.className = 'msg-row user';
+            row.innerHTML = `
+        <div class="msg-avatar user-av">${escHtml(initials)}</div>
+        <div class="bubble user">
+            ${imageUrl ? `<img src="${imageUrl}" class="chat-img" alt="Uploaded hair image">` : ''}
+            ${text ? `<p style="color:white;">${escHtml(text)}</p>` : ''}
+        </div>`;
+            chatBody.appendChild(row);
+            scrollToBottom();
+        }
+
+        function appendBotMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'msg-row';
+            row.innerHTML = `<div class="msg-avatar bot-av">🧬</div><div class="bubble bot">${formatMd(text)}</div>`;
+            chatBody.appendChild(row);
+            scrollToBottom();
+        }
+
+        /**
+         * Converts our markdown-like text to HTML.
+         * Handles: **bold**, *italic*, headers (#), tables (|), lists (•/-), hr (---), blockquotes (>)
+         */
+        function formatMd(text) {
+            let html = text
+                // Escape HTML entities first
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                // Restore > for blockquotes after escaping
+                // We'll parse line by line instead
+                ;
+
+            // Process tables before other rules
+            html = parseMarkdownTables(text);
+
+            return html;
+        }
+
+        function parseMarkdownTables(text) {
+            const lines = text.split('\n');
+            let result = '';
+            let inTable = false;
+            let tableHtml = '';
+            let headerDone = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const isTableRow = /^\|.+\|/.test(line.trim());
+                const isSeparator = /^\|[-| :]+\|$/.test(line.trim());
+
+                if (isSeparator) {
+                    // Skip separator
+                    continue;
+                } else if (isTableRow) {
+                    if (!inTable) {
+                        inTable = true; headerDone = false;
+                        tableHtml = '<table>';
+                    }
+                    const cells = line.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+                    if (!headerDone) {
+                        tableHtml += '<tr>' + cells.map(c => `<th>${inlineFormat(c)}</th>`).join('') + '</tr>';
+                        headerDone = true;
+                    } else {
+                        tableHtml += '<tr>' + cells.map(c => `<td>${inlineFormat(c)}</td>`).join('') + '</tr>';
+                    }
+                } else {
+                    if (inTable) { result += tableHtml + '</table>'; inTable = false; tableHtml = ''; headerDone = false; }
+                    result += formatLine(line) + '\n';
+                }
+            }
+            if (inTable) result += tableHtml + '</table>';
+            return result;
+        }
+
+        function formatLine(line) {
+            const t = line.trim();
+            if (!t) return '<br>';
+            if (t.startsWith('---')) return '<hr>';
+            if (t.startsWith('#### ')) return `<h4>${inlineFormat(t.slice(5))}</h4>`;
+            if (t.startsWith('### ')) return `<h4>${inlineFormat(t.slice(4))}</h4>`;
+            if (t.startsWith('## ')) return `<h4>${inlineFormat(t.slice(3))}</h4>`;
+            if (t.startsWith('# ')) return `<h4>${inlineFormat(t.slice(2))}</h4>`;
+            if (t.startsWith('> ')) return `<blockquote>${inlineFormat(t.slice(2))}</blockquote>`;
+            if (t.startsWith('• ') || t.startsWith('- ') || t.startsWith('* ')) return `<li>${inlineFormat(t.slice(2))}</li>`;
+            return `<p>${inlineFormat(t)}</p>`;
+        }
+
+        function inlineFormat(s) {
+            return s
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code style="background:var(--bg-section);padding:0.1rem 0.4rem;border-radius:4px;font-family:monospace;font-size:0.85em;">$1</code>');
+        }
+
+        function escHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function showTyping() {
+            const id = 'typing-' + Date.now();
+            const row = document.createElement('div');
+            row.className = 'msg-row'; row.id = id;
+            row.innerHTML = `<div class="msg-avatar bot-av">🧬</div><div class="bubble bot"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+            chatBody.appendChild(row);
+            scrollToBottom();
+            return id;
+        }
+        function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
+        function scrollToBottom() { requestAnimationFrame(() => { chatBody.scrollTop = chatBody.scrollHeight; }); }
+
+        // Local fallback (mirrors backend logic)
+        function getLocalResponse(msg) {
+            const t = msg.toLowerCase();
+            const greets = ['hi', 'hello', 'hey', 'good morning', 'good evening', 'how are you', 'how r u'];
+            if (greets.some(g => t.includes(g)) && t.length < 30) return "Hello! 👋 I'm **Dr. Tricho**, your AI Hair Health Consultant. I'm here to help with any hair or scalp concern. What would you like to know today?";
+            if (/hair cycle|anagen|catagen|telogen|exogen/.test(t)) return "I have detailed clinical information on the hair growth cycle. Please check your connection to the TrichoAI backend server (port 9000) and try again — I can provide a full Anagen/Catagen/Telogen breakdown with clinical significance tables.";
+            if (/androgenetic|pattern|norwood|ludwig|aga|dht/.test(t)) return "For Androgenetic Alopecia, I can provide the full Norwood-Hamilton and Ludwig classification tables, along with evidence-based treatments. Please ensure the backend server is running on port 9000.";
+            if (/dandruff|flakes|seborrhe|malassezia/.test(t)) return "For Dandruff/Seborrheic Dermatitis, I have a detailed breakdown of active ingredients (Ketoconazole, ZnP, Selenium Sulfide) with mechanism and efficacy data. Please check your backend connection.";
+            return "I'm Dr. Tricho — please check that the TrichoAI backend server is running on **port 9000** so I can give you a full clinical response. Try: `cd TrichoAI && .\\venv\\Scripts\\python -m uvicorn backend.main:app --port 9000`";
+        }
+    </script>
+</body>
+
+</html>

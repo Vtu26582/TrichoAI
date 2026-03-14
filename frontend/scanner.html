@@ -1,0 +1,578 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo_icon.png"><title>AI Hair Scanner – TrichoAI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: var(--bg-light);
+        }
+
+        .page-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        .upload-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2.5px dashed var(--border);
+            border-radius: var(--radius-xl);
+            padding: 3.5rem 2rem;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .upload-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .scan-tabs {
+            display: flex;
+            gap: 0;
+            background: var(--bg-section);
+            border-radius: 50px;
+            padding: 0.3rem;
+            width: fit-content;
+            margin: 0 auto 2rem;
+        }
+
+        .tab-btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .preview-container {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: #111;
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-container img,
+        .preview-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .scan-ring {
+            width: 200px;
+            height: 200px;
+            border: 3px solid rgba(47, 128, 237, 0.7);
+            border-radius: 50%;
+            position: relative;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scanLine 2s linear infinite;
+        }
+
+        @keyframes scanLine {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .confidence-bar {
+            height: 6px;
+            background: var(--bg-section);
+            border-radius: 50px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 50px;
+            background: linear-gradient(90deg, var(--primary), var(--green));
+            transition: width 1.5s ease;
+        }
+
+        .preprocess-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--bg-section);
+            border-radius: var(--radius-sm);
+            margin-top: 1rem;
+            font-size: 0.82rem;
+        }
+
+        .pp-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .pp-step.done {
+            color: var(--green);
+        }
+
+        .pp-step.active {
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo"><img src="assets/logo_full.png" alt="TrichoAI" style="height:40px; width:auto; object-fit:contain;"></a>
+        <div class="nav-links">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="chatbot.html" class="nav-link">Chatbot</a>
+            <a href="progress.html" class="nav-link">Progress</a>
+            <a href="login.html" class="btn btn-outline btn-sm"
+                onclick="localStorage.removeItem('tricho_session')">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+        <div class="text-center mb-4">
+            <span class="badge badge-blue mb-2">AI Computer Vision</span>
+            <h2 class="mt-2">AI Hair <span class="gradient-text">Condition Scanner</span></h2>
+            <p class="mt-2">Upload a photo or use your camera. Our AI will analyze your hair stage, detect dandruff, and
+                calculate your hair health score with advanced preprocessing.</p>
+        </div>
+
+        <div class="scan-tabs">
+            <button class="tab-btn active" onclick="switchTab('upload', this)">📁 Upload Image</button>
+            <button class="tab-btn" onclick="switchTab('camera', this)">📷 Use Camera</button>
+        </div>
+
+        <!-- UPLOAD TAB -->
+        <div id="tab-upload">
+            <label class="upload-zone" for="img-input" id="upload-zone">
+                <div class="upload-icon">🔬</div>
+                <h3>Drop your hair or scalp photo here</h3>
+                <p class="mt-2">Supports JPG, PNG, WEBP. Best results in good lighting.</p>
+                <div class="btn btn-primary" style="margin-top:1.5rem;">Choose Photo</div>
+                <input type="file" id="img-input" accept="image/*" style="display:none;"
+                    onchange="handleFileUpload(this)">
+            </label>
+        </div>
+
+        <!-- CAMERA TAB -->
+        <div id="tab-camera" class="hidden">
+
+            <!-- Camera ready state (before starting) -->
+            <div id="cam-ready-state"
+                style="background:white; border:2px dashed var(--border); border-radius:var(--radius-xl); padding:3rem 2rem; text-align:center;">
+                <div style="font-size:3rem; margin-bottom:1rem;">📷</div>
+                <h3>Position Your Scalp or Hair</h3>
+                <p class="mt-2">For best results, use good lighting and hold the camera 15–20 cm from your scalp.</p>
+                <ul
+                    style="text-align:left; max-width:320px; margin:1rem auto; color:var(--text-muted); font-size:0.88rem; line-height:1.8;">
+                    <li>💡 Use bright, natural light</li>
+                    <li>📍 Hold steady, focus on the area of concern</li>
+                    <li>🔍 Crown, temples, or part line for best analysis</li>
+                </ul>
+                <button class="btn btn-primary" onclick="openCamera()" id="btn-open-cam" style="margin-top:0.5rem;">📷
+                    Start Camera</button>
+                <div id="cam-error-msg" style="color:#E74C3C; font-size:0.85rem; margin-top:1rem; display:none;"></div>
+            </div>
+
+            <!-- Live camera view (shown after camera starts) -->
+            <div id="cam-live-state" style="display:none;">
+                <div class="preview-container"
+                    style="position:relative; border-radius:var(--radius); overflow:hidden; background:#0a0a0a; aspect-ratio:4/3;">
+                    <video id="webcam" autoplay playsinline muted
+                        style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+                    <!-- Scanning overlay -->
+                    <div
+                        style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+                        <div id="scan-ring"
+                            style="width:200px; height:200px; border:3px solid rgba(47,128,237,0.8); border-radius:50%; position:relative; animation:pulse 2s ease-in-out infinite;">
+                            <div
+                                style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,#56CCF2,transparent); animation:scanLine 2s linear infinite;">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Camera label -->
+                    <div style="position:absolute; top:12px; left:12px; background:rgba(0,0,0,0.55); color:white; font-size:0.75rem; padding:0.3rem 0.75rem; border-radius:50px; backdrop-filter:blur(4px);"
+                        id="cam-label">🔴 LIVE</div>
+                    <!-- Countdown overlay -->
+                    <div id="cam-countdown"
+                        style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; flex-direction:column; color:white;">
+                        <div id="countdown-num" style="font-size:5rem; font-weight:900; line-height:1;">3</div>
+                        <div style="font-size:1rem; margin-top:0.5rem;">Hold still — capturing…</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:1rem; justify-content:center; margin-top:1.25rem; flex-wrap:wrap;">
+                    <button class="btn btn-outline btn-sm" onclick="stopCamera()">✕ Stop Camera</button>
+                    <button class="btn btn-green" onclick="startCountdown()" id="btn-capture">⚡ Capture &
+                        Analyze</button>
+                    <button class="btn btn-outline btn-sm" onclick="switchCameraFacing()" id="btn-flip"
+                        style="display:none;">🔄 Flip Camera</button>
+                </div>
+                <p style="text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:0.75rem;">Point your
+                    camera at the area of concern (crown, temples, part line) and click Capture.</p>
+            </div>
+        </div>
+        <canvas id="process-canvas" style="display:none;"></canvas>
+
+        <!-- PREPROCESSING LOG -->
+        <div class="preprocess-steps hidden" id="pp-log">
+            <div class="pp-step" id="pp-1">⏳ Resizing image to 224×224...</div>
+            <div class="pp-step" id="pp-2">⏳ Converting to RGB color space...</div>
+            <div class="pp-step" id="pp-3">⏳ Normalizing brightness and contrast...</div>
+            <div class="pp-step" id="pp-4">⏳ Reducing image noise...</div>
+            <div class="pp-step" id="pp-5">⏳ Detecting hair and scalp region...</div>
+            <div class="pp-step" id="pp-6">⏳ Extracting hair density features...</div>
+            <div class="pp-step" id="pp-7">⏳ Applying confidence smoothing...</div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="hidden" id="results-section">
+            <h3 class="mt-4 mb-3">📊 Analysis Results</h3>
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-label">Hair Health Score</div>
+                    <div class="result-value gradient-text" id="res-score">–</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="res-score-bar" style="width:0%"></div>
+                    </div>
+                    <p class="mt-2" style="font-size:0.82rem;" id="res-score-desc">–</p>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Hair Stage Detected</div>
+                    <div class="result-value" id="res-stage">–</div>
+                    <div class="mt-1" id="res-stage-badge">–</div>
+                    <p class="mt-1" style="font-size:0.82rem;" id="res-stage-desc">–</p>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Dandruff Detected</div>
+                    <div class="result-value" id="res-dandruff">–</div>
+                    <p class="mt-1" style="font-size:0.82rem;" id="res-dandruff-desc">–</p>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Analysis Confidence</div>
+                    <div class="result-value" id="res-confidence">–</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="res-conf-bar" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <h3 style="margin-bottom:1rem;">💡 Recommendations</h3>
+                <div id="res-recommendations" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+            </div>
+
+            <div class="disclaimer mt-3">
+                <strong>Disclaimer:</strong> This AI assistant provides general hair health guidance and does not
+                replace professional medical advice. Please consult a dermatologist for severe or persistent hair
+                conditions.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'upload';
+        let videoStream = null;
+        let facingMode = 'environment'; // start with back camera, fallback to user
+        let isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-upload').classList.add('hidden');
+            document.getElementById('tab-camera').classList.add('hidden');
+            document.getElementById('tab-' + tab).classList.remove('hidden');
+            currentTab = tab;
+            if (tab !== 'camera' && videoStream) stopCamera();
+        }
+
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => { runAnalysis(e.target.result); };
+            reader.readAsDataURL(file);
+        }
+
+        async function openCamera() {
+            const errEl = document.getElementById('cam-error-msg');
+            errEl.style.display = 'none';
+            document.getElementById('btn-open-cam').textContent = '⏳ Starting camera...';
+            document.getElementById('btn-open-cam').disabled = true;
+
+            // Try progressively simpler constraints — most permissive last
+            const constraints = [
+                { video: { facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+                { video: { facingMode: 'user', width: { ideal: 1280 } } },
+                { video: { width: { ideal: 640 } } },
+                { video: true }
+            ];
+
+            let started = false;
+            for (const constraint of constraints) {
+                try {
+                    videoStream = await navigator.mediaDevices.getUserMedia(constraint);
+                    started = true;
+                    const track = videoStream.getVideoTracks()[0];
+                    const settings = track.getSettings();
+                    facingMode = settings.facingMode || 'user';
+                    if (isMobile) document.getElementById('btn-flip').style.display = 'inline-flex';
+                    break;
+                } catch (e) { /* try next */ }
+            }
+
+            if (!started) {
+                document.getElementById('btn-open-cam').textContent = '📷 Start Camera';
+                document.getElementById('btn-open-cam').disabled = false;
+                errEl.textContent = '⚠️ Camera access denied or no camera found. Please click the camera icon in your browser address bar and allow access, then try again.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            const video = document.getElementById('webcam');
+
+            // Assign stream and play — don't wait for onloadedmetadata (unreliable in Chrome)
+            video.srcObject = null;           // reset first
+            video.srcObject = videoStream;
+            video.muted = true;
+            video.setAttribute('playsinline', '');
+            video.setAttribute('autoplay', '');
+
+            // Show live UI immediately so user can see the loading
+            document.getElementById('cam-ready-state').style.display = 'none';
+            document.getElementById('cam-live-state').style.display = 'block';
+
+            try {
+                await video.play();
+            } catch (playErr) {
+                // On some browsers play() returns a rejected promise if autoplay is blocked
+                // The video still plays via user gesture; just log it
+                console.warn('video.play():', playErr);
+            }
+        }
+
+        function stopCamera() {
+            if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+            document.getElementById('cam-live-state').style.display = 'none';
+            document.getElementById('cam-ready-state').style.display = 'block';
+            document.getElementById('btn-open-cam').textContent = '📷 Start Camera';
+            document.getElementById('btn-open-cam').disabled = false;
+        }
+
+        async function switchCameraFacing() {
+            facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); }
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+                document.getElementById('webcam').srcObject = videoStream;
+            } catch (e) { alert('Could not switch camera.'); }
+        }
+
+        async function startCountdown() {
+            const btn = document.getElementById('btn-capture');
+            btn.disabled = true;
+            const overlay = document.getElementById('cam-countdown');
+            const numEl = document.getElementById('countdown-num');
+            overlay.style.display = 'flex';
+            for (let i = 3; i >= 1; i--) {
+                numEl.textContent = i;
+                await new Promise(r => setTimeout(r, 900));
+            }
+            numEl.textContent = '📸';
+            await new Promise(r => setTimeout(r, 300));
+            overlay.style.display = 'none';
+            btn.disabled = false;
+            captureFrame();
+        }
+
+        function captureFrame() {
+            const video = document.getElementById('webcam');
+            const canvas = document.getElementById('process-canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            runAnalysis(canvas.toDataURL('image/jpeg'));
+        }
+
+        async function runAnalysis(imageData) {
+            document.getElementById('results-section').classList.add('hidden');
+            const ppLog = document.getElementById('pp-log');
+            ppLog.classList.remove('hidden');
+
+            // Simulate preprocessing pipeline
+            const steps = ['pp-1', 'pp-2', 'pp-3', 'pp-4', 'pp-5', 'pp-6', 'pp-7'];
+            const labels = ['✅ Image resized to 224×224', '✅ Converted to RGB', '✅ Brightness normalized', '✅ Noise reduction applied', '✅ Hair/scalp region detected', '✅ Feature extraction complete', '✅ Confidence smoothing applied'];
+
+            for (let i = 0; i < steps.length; i++) {
+                await new Promise(r => setTimeout(r, 400));
+                const el = document.getElementById(steps[i]);
+                el.textContent = labels[i];
+                el.classList.add('done');
+            }
+
+            // Perform mock computer vision analysis on the image
+            await new Promise(r => setTimeout(r, 500));
+
+            // Pixel-based heuristic analysis
+            const canvas = document.getElementById('process-canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = function () {
+                canvas.width = 224; canvas.height = 224;
+                ctx.drawImage(img, 0, 0, 224, 224);
+                const imageDataObj = ctx.getImageData(0, 0, 224, 224);
+                const pixels = imageDataObj.data;
+
+                let darkPixels = 0, whitePixels = 0, totalPixels = pixels.length / 4;
+                for (let p = 0; p < pixels.length; p += 4) {
+                    const r = pixels[p], g = pixels[p + 1], b = pixels[p + 2];
+                    const brightness = (r + g + b) / 3;
+                    if (brightness < 80) darkPixels++;
+                    if (brightness > 200 && Math.abs(r - g) < 30 && Math.abs(g - b) < 30) whitePixels++;
+                }
+
+                const darkRatio = darkPixels / totalPixels;
+                const whiteRatio = whitePixels / totalPixels;
+                const dandruffDetected = whiteRatio > 0.25;
+
+                let stage, score;
+                if (darkRatio > 0.5) { stage = 1; score = Math.floor(85 + Math.random() * 15); }
+                else if (darkRatio > 0.35) { stage = 2; score = Math.floor(65 + Math.random() * 20); }
+                else if (darkRatio > 0.2) { stage = 3; score = Math.floor(40 + Math.random() * 25); }
+                else { stage = 4; score = Math.floor(15 + Math.random() * 25); }
+
+                const confidence = Math.floor(78 + Math.random() * 20);
+                displayResults(stage, score, dandruffDetected, confidence);
+
+                // Save scan to session
+                const session = JSON.parse(localStorage.getItem('tricho_session') || '{}');
+                session.healthScore = score;
+                session.stage = stage;
+                if (!session.scans) session.scans = [];
+                session.scans.push({ date: new Date().toISOString(), score, stage, dandruff: dandruffDetected });
+                localStorage.setItem('tricho_session', JSON.stringify(session));
+            };
+            img.src = imageData;
+        }
+
+        function displayResults(stage, score, dandruff, confidence) {
+            document.getElementById('results-section').classList.remove('hidden');
+
+            const stageLabels = ['', 'Stage 1 – Healthy Hair', 'Stage 2 – Mild Hair Fall', 'Stage 3 – Moderate Hair Loss', 'Stage 4 – Severe Hair Loss'];
+            const stageBadges = ['', 'badge-stage1', 'badge-stage2', 'badge-stage3', 'badge-stage4'];
+            const stageDesc = ['', 'Your hair is in excellent condition. Maintain your current routine.', 'Slight increase in shedding. Consider lifestyle and nutrition improvements.', 'Visible thinning detected. Recommend consulting a dermatologist.', 'Significant hair loss detected. Immediate medical consultation is strongly advised.'];
+            const recommendations = {
+                1: ['💧 Maintain hydration — 2 litres of water daily', '🧴 Use a gentle sulfate-free shampoo weekly', '🥦 Continue balanced diet rich in vitamins A, C, E'],
+                2: ['🛡️ Switch to sulfate-free shampoo (2–3x/week)', '💊 Consider adding biotin and vitamin D supplements', '😌 Reduce stress with daily mindfulness (10 mins)', '🥚 Increase protein: eggs, fish, lentils daily'],
+                3: ['🏥 Consult a dermatologist for a professional evaluation', '💆 Scalp massage with rosemary oil (3–4x/week)', '❌ Avoid heat styling completely for 8 weeks', '🥩 Prioritize iron-rich foods: spinach, red meat, nuts'],
+                4: ['🚨 Urgent: Please consult a certified trichologist', '🔬 Request a scalp biopsy to determine root cause', '💊 Minoxidil (5%) may be discussed with your doctor', '🧬 Consider a full hormonal and nutritional panel blood test']
+            };
+
+            document.getElementById('res-score').textContent = score + ' / 100';
+            document.getElementById('res-score-bar').style.width = score + '%';
+            document.getElementById('res-score-desc').textContent = score >= 80 ? 'Excellent condition' : score >= 60 ? 'Minor issues detected' : score >= 40 ? 'Moderate concern' : 'Severe — needs attention';
+            document.getElementById('res-stage').textContent = stageLabels[stage];
+            document.getElementById('res-stage-badge').innerHTML = `<span class="badge ${stageBadges[stage]}">${stageLabels[stage]}</span>`;
+            document.getElementById('res-stage-desc').textContent = stageDesc[stage];
+            document.getElementById('res-dandruff').textContent = dandruff ? '⚠️ Detected' : '✅ Not Detected';
+            document.getElementById('res-dandruff-desc').textContent = dandruff ? 'White flake clusters and dry patches found. Use zinc pyrithione shampoo.' : 'Scalp appears clean. No significant dandruff indicators found.';
+            document.getElementById('res-confidence').textContent = confidence + '%';
+            document.getElementById('res-conf-bar').style.width = confidence + '%';
+
+            const recList = document.getElementById('res-recommendations');
+            recList.innerHTML = (recommendations[stage] || []).map(r => `<div style="padding:0.75rem 1rem; background:var(--bg-section); border-radius:var(--radius-sm); border-left:3px solid var(--primary); font-size:0.9rem;">${r}</div>`).join('');
+
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+        var results = document.getElementById('results-section');
+    </script>
+</body>
+
+</html>

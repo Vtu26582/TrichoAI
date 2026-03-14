@@ -1,0 +1,416 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo_icon.png"><title>Dashboard – TrichoAI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: var(--bg-light);
+        }
+
+        .dash-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 72px);
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .sidebar-user {
+            padding: 1.25rem;
+            background: var(--bg-section);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--green));
+            color: white;
+            font-weight: 800;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .sidebar-link span {
+            font-size: 1.1rem;
+        }
+
+        .dash-main {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .dash-grid-wide {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .score-card {
+            grid-column: span 1;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(47, 128, 237, 0.3);
+        }
+
+        .score-card h3 {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .big-score {
+            font-size: 4rem;
+            font-weight: 900;
+            color: white;
+            line-height: 1;
+        }
+
+        .score-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+        }
+
+        .stage-visual {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .stage-pill {
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .stage-pill.s1 {
+            background: #E8F8EF;
+            color: #1E8449;
+        }
+
+        .stage-pill.s2 {
+            background: #FEF9E7;
+            color: #D4AC0D;
+        }
+
+        .stage-pill.s3 {
+            background: #FEF0E7;
+            color: #E67E22;
+        }
+
+        .stage-pill.s4 {
+            background: #FDEDEC;
+            color: #E74C3C;
+        }
+
+        .stage-pill.active {
+            border-color: currentColor;
+            transform: scale(1.04);
+        }
+
+        .hair-anim {
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            padding-top: 1rem;
+        }
+
+        .hair-strand {
+            width: 3px;
+            border-radius: 3px 3px 0 0;
+            background: linear-gradient(to top, #4a2c2a, #8B5E52);
+            transform-origin: bottom;
+            animation: growHair 1s ease forwards;
+        }
+
+        @keyframes growHair {
+            from {
+                height: 0;
+            }
+
+            to {
+                height: var(--h);
+            }
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .metric-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .recommendations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .rec-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            background: var(--bg-light);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .rec-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 0.05rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo"><img src="assets/logo_full.png" alt="TrichoAI" style="height:40px; width:auto; object-fit:contain;"></a>
+        <div class="nav-links">
+            <a href="scanner.html" class="btn btn-primary btn-sm">📷 New Scan</a>
+            <a href="login.html" class="btn btn-outline btn-sm" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dash-layout">
+        <div class="sidebar">
+            <div class="sidebar-user">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="font-bold" id="user-name" style="font-size:0.95rem;">User</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);" id="user-email">user@trichiai.com</div>
+            </div>
+            <a href="dashboard.html" class="sidebar-link active"><span>🏠</span> Dashboard</a>
+            <a href="scanner.html" class="sidebar-link"><span>🔬</span> AI Scanner</a>
+            <a href="chatbot.html" class="sidebar-link"><span>💬</span> Dr. Tricho AI</a>
+            <a href="progress.html" class="sidebar-link"><span>📈</span> Progress</a>
+            <div style="flex:1;"></div>
+            <a href="login.html" class="sidebar-link" onclick="logout()" style="color: #E74C3C;"><span>🚪</span>
+                Logout</a>
+        </div>
+
+        <div class="dash-main">
+            <h2 class="mb-2">Good morning, <span id="dash-name" class="gradient-text">User</span> 👋</h2>
+            <p class="text-muted">Here's your hair health overview for today.</p>
+
+            <div class="dash-grid mt-4">
+                <!-- Score Card -->
+                <div class="score-card">
+                    <h3>HAIR HEALTH SCORE</h3>
+                    <div class="big-score" id="score-display">--</div>
+                    <div class="score-label">out of 100</div>
+                    <div class="progress-bar-track" style="margin-top:1rem; background:rgba(255,255,255,0.2);">
+                        <div class="progress-fill" id="score-bar" style="width:0%; background: rgba(255,255,255,0.7);">
+                        </div>
+                    </div>
+                    <div style="font-size:0.82rem; margin-top:0.5rem; opacity:0.8;" id="score-status">Calculating...
+                    </div>
+                </div>
+
+                <!-- Stage Card -->
+                <div class="metric-card">
+                    <div class="metric-icon">💇</div>
+                    <div style="font-size:0.85rem; color:var(--text-muted); font-weight:500;">Current Hair Stage</div>
+                    <div class="metric-value mt-1" id="stage-title">–</div>
+                    <div id="stage-badge" class="mt-1"></div>
+                    <div class="stage-visual mt-2" id="stage-visual">
+                        <div class="stage-pill s1">Stage 1<br>Healthy</div>
+                        <div class="stage-pill s2">Stage 2<br>Mild</div>
+                        <div class="stage-pill s3">Stage 3<br>Moderate</div>
+                        <div class="stage-pill s4">Stage 4<br>Severe</div>
+                    </div>
+                </div>
+
+                <!-- Hair Visualization -->
+                <div class="metric-card">
+                    <div class="font-bold mb-2" style="font-size:0.9rem; color:var(--text-muted);">HAIR DENSITY
+                        VISUALIZATION</div>
+                    <div class="hair-anim" id="hair-anim"></div>
+                    <div class="mt-2" style="text-align:center; font-size:0.8rem; color:var(--text-muted);"
+                        id="hair-desc">Analyzing hair density...</div>
+                </div>
+            </div>
+
+            <div class="dash-grid-wide">
+                <!-- Recommendations -->
+                <div class="metric-card">
+                    <h3 class="mb-3" style="font-size:1.1rem;">🎯 Personalized Recommendations</h3>
+                    <div class="recommendations-list" id="recs-list">
+                        <div class="rec-item"><span class="rec-icon">🧴</span> Use a sulfate-free shampoo 2–3 times per
+                            week to maintain scalp balance.</div>
+                        <div class="rec-item"><span class="rec-icon">🥚</span> Increase protein intake — eggs, fish, and
+                            lentils are excellent sources of biotin.</div>
+                        <div class="rec-item"><span class="rec-icon">😴</span> Aim for 7–9 hours of sleep per night.
+                            Poor sleep accelerates hair fall.</div>
+                        <div class="rec-item"><span class="rec-icon">💧</span> Stay hydrated — drink at least 2 litres
+                            of water daily for scalp health.</div>
+                    </div>
+                    <div class="disclaimer">
+                        <strong>Disclaimer:</strong> This AI assistant provides general hair health guidance and does
+                        not replace professional medical advice. Please consult a dermatologist for severe or persistent
+                        hair conditions.
+                    </div>
+                </div>
+
+                <!-- Profile Summary -->
+                <div class="metric-card">
+                    <h3 class="mb-3" style="font-size:1.1rem;">👤 Your Profile</h3>
+                    <div style="display: flex; flex-direction:column; gap:0.6rem;" id="profile-summary">
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;"><span
+                                class="text-muted">Age</span><span class="font-bold" id="p-age">–</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;"><span
+                                class="text-muted">Hair Type</span><span class="font-bold" id="p-hair">–</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;"><span
+                                class="text-muted">Scalp Type</span><span class="font-bold" id="p-scalp">–</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;"><span
+                                class="text-muted">Diet</span><span class="font-bold" id="p-diet">–</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;"><span
+                                class="text-muted">Stress Level</span><span class="font-bold" id="p-stress">–/10</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.9rem;"><span
+                                class="text-muted">Concern</span><span class="font-bold" id="p-concern">–</span></div>
+                    </div>
+                    <hr style="border:none; border-top:1px solid var(--border); margin:1rem 0;">
+                    <a href="scanner.html" class="btn btn-primary w-full" style="font-size:0.9rem;">📷 Start New
+                        Scan</a>
+                    <a href="chatbot.html" class="btn btn-outline w-full mt-2" style="font-size:0.9rem;">💬 Ask Dr.
+                        Tricho</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const session = JSON.parse(localStorage.getItem('tricho_session') || 'null');
+        if (!session) window.location.href = 'login.html';
+
+        const stages = {
+            1: { label: 'Stage 1 – Healthy Hair', desc: 'Strong density, healthy scalp. Keep up your routine!', badgeClass: 'badge-stage1', strands: 20, heights: [60, 65, 70, 68, 72, 60, 65, 70, 68, 72, 60, 65, 70, 68, 72, 60, 65, 70, 68, 72] },
+            2: { label: 'Stage 2 – Mild Hair Fall', desc: 'Slight increase in shedding. Make some lifestyle improvements.', badgeClass: 'badge-stage2', strands: 14, heights: [50, 55, 45, 40, 52, 48, 50, 55, 45, 40, 52, 48, 55, 48] },
+            3: { label: 'Stage 3 – Moderate Hair Loss', desc: 'Visible thinning. Recommended to consult a dermatologist.', badgeClass: 'badge-stage3', strands: 9, heights: [35, 28, 40, 25, 32, 30, 35, 28, 40] },
+            4: { label: 'Stage 4 – Severe Hair Loss', desc: 'Significant thinning or scalp exposure. Please see a specialist.', badgeClass: 'badge-stage4', strands: 5, heights: [20, 15, 18, 12, 16] }
+        };
+
+        function init() {
+            document.getElementById('user-avatar').textContent = (session.name || 'U')[0].toUpperCase();
+            document.getElementById('user-name').textContent = session.name || 'User';
+            document.getElementById('user-email').textContent = session.email || '';
+            document.getElementById('dash-name').textContent = (session.name || 'User').split(' ')[0];
+
+            document.getElementById('p-age').textContent = session.age || '–';
+            document.getElementById('p-hair').textContent = session.hairType || '–';
+            document.getElementById('p-scalp').textContent = session.scalpType || '–';
+            document.getElementById('p-diet').textContent = session.diet || '–';
+            document.getElementById('p-stress').textContent = (session.stress || '–') + '/10';
+            document.getElementById('p-concern').textContent = session.concern || 'None';
+
+            const score = session.healthScore || 72;
+            const stage = session.stage || 2;
+
+            // Animate score
+            let s = 0;
+            const interval = setInterval(() => {
+                s = Math.min(s + 2, score);
+                document.getElementById('score-display').textContent = s;
+                document.getElementById('score-bar').style.width = s + '%';
+                if (s >= score) clearInterval(interval);
+            }, 25);
+
+            const scoreStatus = score >= 85 ? '✅ Excellent Hair Health' : score >= 65 ? '⚠️ Good – Minor Issues Detected' : score >= 45 ? '🔶 Moderate – Attention Needed' : '🔴 Severe – Immediate Action Required';
+            document.getElementById('score-status').textContent = scoreStatus;
+
+            // Stage
+            const s_data = stages[stage];
+            document.getElementById('stage-title').textContent = s_data.label;
+            document.getElementById('stage-badge').innerHTML = `<span class="badge ${s_data.badgeClass}">${s_data.label}</span>`;
+            document.querySelectorAll('.stage-pill')[stage - 1].classList.add('active');
+            document.getElementById('hair-desc').textContent = s_data.desc;
+
+            // Hair animation
+            const container = document.getElementById('hair-anim');
+            s_data.heights.forEach((h, i) => {
+                const strand = document.createElement('div');
+                strand.className = 'hair-strand';
+                strand.style.setProperty('--h', h + 'px');
+                strand.style.animationDelay = (i * 0.05) + 's';
+                container.appendChild(strand);
+            });
+        }
+
+        function logout() { localStorage.removeItem('tricho_session'); }
+
+        init();
+    </script>
+</body>
+
+</html>

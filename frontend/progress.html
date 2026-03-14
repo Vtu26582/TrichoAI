@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo_icon.png"><title>Progress Tracker – TrichoAI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: var(--bg-light);
+        }
+
+        .page-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        .progress-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.25rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--primary);
+            margin-left: 6px;
+        }
+
+        .timeline-item.stage1::before {
+            background: #27AE60;
+        }
+
+        .timeline-item.stage2::before {
+            background: #D4AC0D;
+        }
+
+        .timeline-item.stage3::before {
+            background: #E67E22;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo"><img src="assets/logo_full.png" alt="TrichoAI" style="height:40px; width:auto; object-fit:contain;"></a>
+        <div class="nav-links">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="scanner.html" class="nav-link">Scanner</a>
+            <a href="chatbot.html" class="nav-link">Chatbot</a>
+            <a href="scanner.html" class="btn btn-primary btn-sm">📷 New Scan</a>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+        <div style="margin-bottom:2rem;">
+            <span class="badge badge-blue mb-2">Progress Monitoring</span>
+            <h2 class="mt-2">Your Hair Health <span class="gradient-text">Progress Tracker</span></h2>
+            <p class="mt-1">Track your hair health score and stage progression over all your AI scanner sessions.</p>
+        </div>
+
+        <!-- Summary cards -->
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem;" id="summary-cards">
+            <div class="card card-sm text-center">
+                <div style="font-size:2rem; font-weight:800; color:var(--primary);" id="s-latest">–</div>
+                <div class="text-muted" style="font-size:0.8rem;">Latest Score</div>
+            </div>
+            <div class="card card-sm text-center">
+                <div style="font-size:2rem; font-weight:800; color:var(--green);" id="s-best">–</div>
+                <div class="text-muted" style="font-size:0.8rem;">Best Score</div>
+            </div>
+            <div class="card card-sm text-center">
+                <div style="font-size:2rem; font-weight:800; color:var(--text);" id="s-total">0</div>
+                <div class="text-muted" style="font-size:0.8rem;">Total Scans</div>
+            </div>
+            <div class="card card-sm text-center">
+                <div style="font-size:2rem; font-weight:800;" id="s-trend">–</div>
+                <div class="text-muted" style="font-size:0.8rem;">Score Trend</div>
+            </div>
+        </div>
+
+        <div class="progress-grid">
+            <!-- Chart -->
+            <div class="card" style="grid-column:1/-1;">
+                <h3 style="margin-bottom:1.5rem;">📈 Hair Health Score History</h3>
+                <div id="no-data-chart" class="no-data hidden">
+                    <p style="font-size:3rem;">📊</p>
+                    <h3 class="mt-2">No scan history yet</h3>
+                    <p class="mt-1">Complete your first AI scan to start tracking your progress.</p>
+                    <a href="scanner.html" class="btn btn-primary mt-3" style="display:inline-flex;">Start First Scan
+                        →</a>
+                </div>
+                <canvas id="progress-chart" height="80"></canvas>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <h3 style="margin-bottom:1.5rem;">🗓️ Scan Timeline</h3>
+                <div class="timeline" id="timeline">
+                    <div class="no-data" id="no-timeline">
+                        <p>No scans recorded yet. Use the AI Scanner to start.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage Breakdown -->
+            <div class="card">
+                <h3 style="margin-bottom:1.5rem;">💇 Stage Progression</h3>
+                <canvas id="stage-chart" height="180"></canvas>
+                <div class="disclaimer mt-3">
+                    <strong>Disclaimer:</strong> This AI assistant provides general hair health guidance and does not
+                    replace professional medical advice. Please consult a dermatologist for severe or persistent hair
+                    conditions.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const session = JSON.parse(localStorage.getItem('tricho_session') || 'null');
+        if (!session) window.location.href = 'login.html';
+
+        function init() {
+            const scans = session.scans || [];
+
+            // Add demo data if empty for demo users
+            const finalScans = scans.length === 0 ? [
+                { date: new Date(Date.now() - 86400000 * 14).toISOString(), score: 62, stage: 2, dandruff: true },
+                { date: new Date(Date.now() - 86400000 * 10).toISOString(), score: 67, stage: 2, dandruff: false },
+                { date: new Date(Date.now() - 86400000 * 6).toISOString(), score: 71, stage: 2, dandruff: false },
+                { date: new Date(Date.now() - 86400000 * 2).toISOString(), score: 76, stage: 1, dandruff: false },
+            ] : scans;
+
+            const latest = finalScans[finalScans.length - 1];
+            const best = Math.max(...finalScans.map(s => s.score));
+            const trend = finalScans.length >= 2 ? (latest.score - finalScans[finalScans.length - 2].score) : 0;
+
+            document.getElementById('s-latest').textContent = latest ? latest.score : '–';
+            document.getElementById('s-best').textContent = best || '–';
+            document.getElementById('s-total').textContent = finalScans.length;
+            const trendEl = document.getElementById('s-trend');
+            trendEl.textContent = trend > 0 ? `▲ +${trend}` : trend < 0 ? `▼ ${trend}` : '—';
+            trendEl.style.color = trend > 0 ? 'var(--green)' : trend < 0 ? '#E74C3C' : 'var(--text-muted)';
+
+            // Score History Chart
+            const labels = finalScans.map((s, i) => {
+                const d = new Date(s.date);
+                return `${d.getDate()}/${d.getMonth() + 1}`;
+            });
+            const scores = finalScans.map(s => s.score);
+
+            const ctx = document.getElementById('progress-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Hair Health Score',
+                        data: scores,
+                        fill: true,
+                        borderColor: '#2F80ED',
+                        backgroundColor: 'rgba(47,128,237,0.08)',
+                        tension: 0.4,
+                        pointBackgroundColor: '#2F80ED',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        borderWidth: 3,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { stepSize: 20 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Stage Pie Chart
+            const stageCounts = [0, 0, 0, 0];
+            finalScans.forEach(s => { if (s.stage >= 1 && s.stage <= 4) stageCounts[s.stage - 1]++; });
+            const stageCtx = document.getElementById('stage-chart').getContext('2d');
+            new Chart(stageCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Stage 1 – Healthy', 'Stage 2 – Mild', 'Stage 3 – Moderate', 'Stage 4 – Severe'],
+                    datasets: [{ data: stageCounts, backgroundColor: ['#27AE60', '#D4AC0D', '#E67E22', '#E74C3C'], borderWidth: 2, borderColor: 'white' }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 12 } } } }
+            });
+
+            // Timeline
+            const timeline = document.getElementById('timeline');
+            if (finalScans.length > 0) document.getElementById('no-timeline').remove();
+            const stageClasses = ['', 'stage1', 'stage2', 'stage3', 'stage4'];
+            const stageLabels = ['', 'Healthy', 'Mild Hair Fall', 'Moderate Loss', 'Severe Loss'];
+            [...finalScans].reverse().forEach(s => {
+                const d = new Date(s.date);
+                const item = document.createElement('div');
+                item.className = `timeline-item ${stageClasses[s.stage] || ''}`;
+                item.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>${stageLabels[s.stage] || 'Unknown Stage'}</strong>
+            <span class="badge badge-blue">Score: ${s.score}</span>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">${d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} ${s.dandruff ? '· ⚠️ Dandruff detected' : ''}</div>`;
+                timeline.appendChild(item);
+            });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

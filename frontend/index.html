@@ -1,0 +1,463 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/logo_icon.png"><title>TrichoAI – AI Hair Health Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        .hero {
+            min-height: 92vh;
+            background: linear-gradient(160deg, #F0F7FF 0%, #FFFFFF 50%, #F0FFF5 100%);
+            display: flex;
+            align-items: center;
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(47, 128, 237, 0.08), transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -100px;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(39, 174, 96, 0.07), transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: left;
+        }
+
+        .stat-number {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .hero-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .hero-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            animation: slideUp 0.6s ease forwards;
+        }
+
+        .hero-card:nth-child(2) {
+            animation-delay: 0.15s;
+            margin-left: 1.5rem;
+        }
+
+        .hero-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .hero-card-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-mini {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stage-dots {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-active {
+            background: var(--green);
+        }
+
+        .dot-inactive {
+            background: var(--bg-section);
+            border: 2px solid var(--border);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .feature-icon.green {
+            background: linear-gradient(135deg, var(--green-light), #E8F8F5);
+        }
+
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .how-step {
+            text-align: center;
+            padding: 2rem 1rem;
+            position: relative;
+        }
+
+        .how-step::after {
+            content: '→';
+            position: absolute;
+            right: -12px;
+            top: 2.2rem;
+            font-size: 1.5rem;
+            color: var(--border);
+        }
+
+        .how-step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: 0 4px 12px rgba(47, 128, 237, 0.3);
+        }
+
+        .cta-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius-xl);
+            padding: 4rem 3rem;
+            text-align: center;
+            color: white;
+            margin: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E") repeat;
+        }
+
+        .cta-banner h2 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-banner p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .btn-white:hover {
+            background: var(--bg-light);
+        }
+
+        footer {
+            background: var(--text);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 2.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo"><img src="assets/logo_full.png" alt="TrichoAI" style="height:40px; width:auto; object-fit:contain;"></a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link active">Home</a>
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="scanner.html" class="nav-link">AI Scanner</a>
+            <a href="chatbot.html" class="nav-link">Chatbot</a>
+            <a href="progress.html" class="nav-link">Progress</a>
+            <a href="login.html" class="btn btn-primary btn-sm" style="margin-left:0.5rem;">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content slide-up">
+                    <div class="hero-badge">🧠 AI-Powered Hair Health Analysis</div>
+                    <h1 class="hero-title">Your Personal <span class="gradient-text">AI Hair Health</span> Consultant
+                    </h1>
+                    <p>TrichoAI combines computer vision, intelligent consultation, and personalized nutrition science
+                        to give you a complete picture of your scalp and hair health.</p>
+                    <div class="hero-cta">
+                        <a href="register.html" class="btn btn-primary">Start Free Analysis →</a>
+                        <a href="scanner.html" class="btn btn-outline">Try AI Scanner</a>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-number gradient-text">98%</div>
+                            <div class="stat-label">Detection Accuracy</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number gradient-text">4</div>
+                            <div class="stat-label">Hair Stages Analyzed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number gradient-text">AI</div>
+                            <div class="stat-label">LLM Powered Chatbot</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-card fade-in">
+                        <div class="hero-card-title">🏥 Hair Health Score</div>
+                        <div class="score-mini">84 / 100</div>
+                        <div class="progress-bar-track mt-2" style="margin-top:0.5rem;">
+                            <div class="progress-fill" style="width:84%;"></div>
+                        </div>
+                        <p style="font-size:0.8rem; margin-top:0.4rem; color: var(--green);font-weight:600;">Good — Mild
+                            Shedding Detected</p>
+                    </div>
+                    <div class="hero-card fade-in">
+                        <div class="hero-card-title">📊 Current Hair Stage</div>
+                        <div style="display:flex; gap:0.75rem; align-items:center; margin-top:0.5rem;">
+                            <span class="badge badge-stage2">Stage 2 – Mild Hair Fall</span>
+                        </div>
+                        <div class="stage-dots mt-2">
+                            <div class="dot dot-active"></div>
+                            <div class="dot dot-active"></div>
+                            <div class="dot dot-inactive"></div>
+                            <div class="dot dot-inactive"></div>
+                        </div>
+                    </div>
+                    <div class="hero-card fade-in">
+                        <div class="hero-card-title">🤖 AI Recommendation</div>
+                        <p style="font-size:0.85rem; margin-top:0.4rem;">Increase biotin intake and reduce heat styling.
+                            Use a sulfate-free shampoo 2–3x weekly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section section-alt">
+        <div class="container text-center">
+            <span class="badge badge-blue mb-2">Core Features</span>
+            <h2>Everything You Need for <span class="gradient-text">Healthy Hair</span></h2>
+            <p class="mt-2" style="max-width:600px; margin:0.75rem auto 0;">A complete AI-powered platform combining
+                computer vision, intelligent chat, and lifestyle science.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔬</div>
+                    <h3>AI Hair Condition Scanner</h3>
+                    <p class="mt-2">Upload a photo or use your camera for real-time scalp analysis. Our AI classifies
+                        hair stages and detects dandruff with preprocessing normalization.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green">💬</div>
+                    <h3>Dr. Tricho AI Chatbot</h3>
+                    <p class="mt-2">Ask anything about hair health. Dr. Tricho is a specialized AI consultant powered by
+                        advanced language model technology, available 24/7.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Progress Tracker</h3>
+                    <p class="mt-2">Track your hair health score over time with visual charts. Compare before/after
+                        scans and monitor your improvement journey.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section">
+        <div class="container text-center">
+            <span class="badge badge-green mb-2">How It Works</span>
+            <h2>Get Your <span class="gradient-text">Hair Analysis</span> in Minutes</h2>
+            <div class="how-grid">
+                <div class="how-step">
+                    <div class="step-number">1</div>
+                    <h3>Create Profile</h3>
+                    <p class="mt-2">Enter your hair type, scalp condition, lifestyle, and diet habits.</p>
+                </div>
+                <div class="how-step">
+                    <div class="step-number">2</div>
+                    <h3>Scan Hair</h3>
+                    <p class="mt-2">Upload a photo or use your camera. Our AI preprocesses and analyzes it.</p>
+                </div>
+                <div class="how-step">
+                    <div class="step-number">3</div>
+                    <h3>Get Score</h3>
+                    <p class="mt-2">Receive your personalized Hair Health Score and stage classification.</p>
+                </div>
+                <div class="how-step">
+                    <div class="step-number">4</div>
+                    <h3>Follow Plan</h3>
+                    <p class="mt-2">Chat with Dr. Tricho and follow a tailored routine, diet, and lifestyle plan.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA BANNER -->
+    <section class="section" style="padding-top:0; padding-bottom:4rem;">
+        <div class="container">
+            <div class="cta-banner">
+                <div style="position:relative; z-index:1;">
+                    <h2>Ready to Understand Your Hair Health?</h2>
+                    <p>Join thousands of users already improving their hair with TrichoAI.</p>
+                    <a href="register.html" class="btn btn-white btn-sm"
+                        style="font-size:1rem; padding:0.9rem 2.5rem;">Start For Free — It's Quick →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 <strong style="color:white;">TrichoAI</strong> — AI Hair Health Assistant &nbsp;|&nbsp; <a
+                href="#">Privacy Policy</a> &nbsp;|&nbsp; <a href="#">Terms</a></p>
+        <p class="mt-1" style="font-size:0.78rem;">This platform provides general hair health guidance and does not
+            replace professional medical advice.</p>
+    </footer>
+
+</body>
+
+</html>
